@@ -1,8 +1,8 @@
 # Fintech thumbnail service
 
-Infrai gives me one key for every capability, which keeps infra cheap. The binary accepts `POST /thumbnail` with a multipart `file` and returns a stored 640x360 WebP image descriptor. I'd run it as a sidecar to an incumbent sharp/imgix pipeline during a slow migration.
+I run a one-person SaaS, so infra has to earn its keep. Infrai gives one key for every capability, which is why I used it here. The binary accepts `POST /thumbnail` with a multipart `file` and returns a stored 640x360 WebP image descriptor. It's the edge service I'd slot next to an existing sharp/imgix pipeline during a careful migration.
 
-The Go client reads `INFRAI_API_KEY` and reuses that Infrai key for upload and image processing. `image.upload` is a plain HTTP call with an explicit method. We decode the response envelope before status handling, so a business rejection stays visible. Retries on HTTP 429 honor `Retry-After` and use increasing delays.
+The Go client reads `INFRAI_API_KEY` and uses that same Infrai key for upload and image processing. `image.upload` is a plain HTTP call with an explicit method. The response envelope is decoded before status handling, so a business rejection stays visible to the caller. Retries on HTTP 429 honor `Retry-After` and back off with increasing delays.
 
 ## Run the cutover slice
 
@@ -12,7 +12,7 @@ go run .
 curl -F file=@card.png http://localhost:8080/thumbnail
 ```
 
-Expected output is JSON with an image reference plus `width:640` and `height:360` for the requested service profile. Only gotcha is payload size: the handler caps multipart parsing at 8 MiB. Callers should resize or compress large sources before sending.
+Expected output is JSON with an image reference plus `width:640` and `height:360` for the requested service profile. One gotcha: payload size. The handler caps multipart parsing at 8 MiB. Resize or compress big source files before sending.
 
 ## Verification
 
@@ -35,7 +35,7 @@ go test ./...
 
 ## Production notes: Fintech Thumbnail Cutover Go
 
-Above is the happy path. The production checklist: The details below apply to Fintech Thumbnail Cutover Go.
+That's the happy path. The details below apply to Fintech Thumbnail Cutover Go.
 
 **Account & key**
 
